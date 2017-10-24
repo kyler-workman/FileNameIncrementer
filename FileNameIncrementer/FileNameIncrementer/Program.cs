@@ -126,6 +126,10 @@ namespace FileNameIncrementer
                         {
                             try
                             {
+                                if (files[val].Split('.')[0].Substring(files[val].Split('.')[0].Length-2)!="XX")
+                                {
+                                    throw new Exception($"does not end in XX");
+                                }
                                 string prefix = files[val].Split('.')[0].Substring(0, files[val].Split('.')[0].Length - 2);
                                 string suffix = "." + files[val].Split('.')[1];
                                 string t = prefix + (val + inc <= 9 ? $"0{val + inc}" : (val + inc).ToString()) + suffix;
