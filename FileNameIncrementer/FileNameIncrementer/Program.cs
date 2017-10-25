@@ -15,16 +15,20 @@ namespace FileNameIncrementer
         [STAThread]
         static void Main(string[] args)
         {
-            Console.WriteLine("files must be in the format \"filenameXX\"\n");
+            Console.WriteLine("files must be in the format \"filenameXX\"");
             bool keepGoing = true;
             while (keepGoing)
             {
-                switch (CIO.PromptForMenuSelection(new string[] { "Increment 2 trailing numbers", "Convert trailing XX into numbers" }, true))
+                Console.WriteLine();
+                switch (CIO.PromptForMenuSelection(new string[] { "Increment files with 2 trailing numbers", "Increment folders with 2 trailing numbers", "Convert trailing XX into numbers" }, true))
                 {
                     case 1:
                         Increment();
                         break;
                     case 2:
+                        IncrementFolders();
+                        break;
+                    case 3:
                         Change();
                         break;
                     case 0:
@@ -32,6 +36,64 @@ namespace FileNameIncrementer
                         break;
                 }
             }
+        }
+
+        private static void IncrementFolders()
+        {
+            string folderPath = "";
+            FolderBrowserDialog f = new FolderBrowserDialog();
+            DialogResult d = f.ShowDialog();
+
+            if (d == DialogResult.OK)
+            {
+                folderPath = f.SelectedPath;
+                string[] folders = Directory.GetDirectories(folderPath);
+                if (folders.Count() != 0)
+                {
+
+                    if (CIO.PromptForBool($"{folders.Count()} folders found. Continue? (y/n)", "y", "n"))
+                    {
+                        int inc = CIO.PromptForInt("How much do you want to increment each folder by?", 0, int.MaxValue);
+                        List<string> names = new List<string>();
+                        foreach (string folder in folders)
+                        {
+                            try
+                            {
+                                int num = int.Parse(folder.Substring(folder.Length - 2, 2));
+                                num += inc;
+                                string folderBeginning = folder.Substring(0,folder.Length-2);
+                                string[] path = folder.Split('\\');
+                                string name = path[path.Count() - 1];
+                                name = name.Substring(0,name.Length-2);
+                                Directory.CreateDirectory(folderPath + "\\TEMPFOLDERDONOTTOUCHWHILEPROGRAMISRUNNINGYEEEEEEET");
+                                Directory.Move(folder, folderPath + $"\\TEMPFOLDERDONOTTOUCHWHILEPROGRAMISRUNNINGYEEEEEEET\\{name}{(num <= 9 ? "0" + num : num.ToString())}");
+                                names.Add(folderPath + $"\\TEMPFOLDERDONOTTOUCHWHILEPROGRAMISRUNNINGYEEEEEEET\\{name}{(num <= 9 ? "0" + num : num.ToString())}");
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine($"{folder} will be skipped: " + e.Message);
+                            }
+                        }
+                        foreach (string path in names)
+                        {
+                            //no catches
+                            Directory.Move(path, folderPath + $"\\{(path.Split('\\')[path.Split('\\').Count() - 1])}");
+
+
+                        }
+                        if (names.Count > 0)
+                        {
+                            Directory.Delete(Directory.GetParent(names[0].Split('.')[0]).FullName);
+                        }
+                        //
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No Folders found");
+                }
+            }
+
         }
 
         public static void Increment()
@@ -126,7 +188,7 @@ namespace FileNameIncrementer
                         {
                             try
                             {
-                                if (files[val].Split('.')[0].Substring(files[val].Split('.')[0].Length-2)!="XX")
+                                if (files[val].Split('.')[0].Substring(files[val].Split('.')[0].Length - 2) != "XX")
                                 {
                                     throw new Exception($"does not end in XX");
                                 }
